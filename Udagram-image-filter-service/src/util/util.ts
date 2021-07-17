@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import Jimp = require('jimp');
 import fetch from 'node-fetch';
 // filterImageFromURL
@@ -10,21 +11,22 @@ import fetch from 'node-fetch';
 //    an absolute path to a filtered image locally saved file
 export async function filterImageFromURL(inputURL: string): Promise<string> {
     return new Promise(async (resolve, reject) => {
-        const outpath = '/tmp/filtered.' + Math.floor(Math.random() * 2000) + '.jpg';
-        const file = await download(inputURL, outpath);
-        Jimp.read(file)
-            .then(photo => {
-                photo
-                    .resize(256, 256) // resize
-                    .quality(60) // set JPEG quality
-                    .greyscale() // set greyscale
-                    .write(__dirname + outpath, (img) => {
-                        resolve(__dirname + outpath);
-                    });
-            }).catch(err => {
-                console.error(err);
-                reject("Could not read image.");
-            });
+        try {
+            const outpath = '/tmp/filtered.' + Math.floor(Math.random() * 2000) + '.jpg';
+            const file = await download(inputURL, outpath);
+            const photo = await Jimp.read(file);
+            await photo
+                .resize(256, 256) // resize
+                .quality(60) // set JPEG quality
+                .greyscale() // set greyscale
+                .write(path.join(__dirname, outpath), (img) => {
+                    resolve(path.join(__dirname, outpath));
+                });
+
+        } catch (error) {
+            console.log(error);
+            reject(error)
+        }
     });
 }
 
@@ -32,9 +34,9 @@ export async function filterImageFromURL(inputURL: string): Promise<string> {
 async function download(url: string, outpath: string) {
     const response = await fetch(url);
     const buffer = await response.buffer();
-    fs.writeFile(__dirname + outpath, buffer, () =>
+    fs.writeFile(path.join(__dirname, outpath), buffer, () =>
         console.log('finished downloading!'));
-    return __dirname + outpath;
+    return path.join(__dirname, outpath);
 }
 // deleteLocalFiles
 // helper function to delete files on the local disk
@@ -43,6 +45,7 @@ async function download(url: string, outpath: string) {
 //    files: Array<string> an array of absolute paths to files
 export async function deleteLocalFiles(files: Array<string>) {
     for (let file of files) {
+        console.log("for each " + file);
         fs.unlinkSync(file);
     }
 }

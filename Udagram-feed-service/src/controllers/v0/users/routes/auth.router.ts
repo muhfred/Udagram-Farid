@@ -46,8 +46,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     return jwt.verify(token, config.jwt.secret, (err, decoded) => {
         if (err) {
             return res.status(500).send({ auth: false, message: 'Failed to authenticate.' });
-        }
-        return next(decoded);
+        };
+        return next();
     });
 }
 

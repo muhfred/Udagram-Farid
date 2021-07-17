@@ -37,6 +37,18 @@ router.patch('/:id',
         const id = req.params.id;
         const { caption, url } = req.body;
 
+        if (!id) {
+            return res.status(400).send({ message: 'id is required' });
+        }
+
+        if (!caption) {
+            return res.status(400).send({ message: 'Caption is required or malformed' });
+        }
+
+        if (!url) {
+            return res.status(400).send({ message: 'url is required' });
+        }
+
         const item = await FeedItem.findOne({
             where: { id: id },
             attributes: ['id', 'caption', 'url']
@@ -61,6 +73,11 @@ router.get('/signed-url/:fileName',
     requireAuth,
     async (req: Request, res: Response) => {
         const { fileName } = req.params;
+
+        if (!fileName) {
+            return res.status(400).send({ message: 'file name is required or malformed' });
+        }
+
         const url = AWS.getPutSignedUrl(fileName);
         res.status(201).send({ url: url });
     });

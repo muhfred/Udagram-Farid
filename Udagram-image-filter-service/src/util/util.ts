@@ -13,15 +13,15 @@ export async function filterImageFromURL(inputURL: string): Promise<string> {
     return new Promise(async (resolve, reject) => {
         try {
             const generatedImageName = 'filtered.' + Math.floor(Math.random() * 2000) + '.jpg';
-            const folder = 'tmp';
-            const file = await downloadFile(inputURL, __dirname + folder, generatedImageName);
+            // const folder = 'tmp';
+            const file = await downloadFile(inputURL, __dirname, generatedImageName);
             const photo = await Jimp.read(file);
             await photo
                 .resize(256, 256) // resize
                 .quality(60) // set JPEG quality
                 .greyscale() // set greyscale
-                .write(path.join(__dirname, folder, generatedImageName), (img) => {
-                    resolve(path.join(__dirname, folder, generatedImageName));
+                .write(path.join(__dirname, generatedImageName), (img) => {
+                    resolve(path.join(__dirname, generatedImageName));
                 });
 
         } catch (error) {
@@ -35,11 +35,11 @@ export async function filterImageFromURL(inputURL: string): Promise<string> {
 // url is the image address, for example, http://wximg.233.com/attached/image/20160815/20160815162505_0878.png
 // filepath is the local directory for file downloads
 // name is the file name after downloading
-async function downloadFile(url: string, filepath: string, name: string): Promise<string> {
-    if (!fs.existsSync(filepath)) {
-        fs.mkdirSync(filepath);
+async function downloadFile(url: string, filePath: string, fileName: string): Promise<string> {
+    if (!fs.existsSync(filePath)) {
+        fs.mkdirSync(filePath);
     }
-    const mypath = path.resolve(filepath, name);
+    const mypath = path.resolve(filePath, fileName);
     const writer = fs.createWriteStream(mypath);
     const response = await Axios({
         url,

@@ -29,18 +29,16 @@ import { filterImageFromURL, deleteLocalFiles } from './util/util';
   /**************************************************************************** */
   app.get('/filteredimage', async (req, res) => {
 
-    const URL = req.query.image_url;
+    const URL = req.query.image_url as string;
 
     if (!URL) {
       return res.send({ message: 'the query string image_url is required or malformed' });
     }
     try {
-      let filteredImage: string;
-      await filterImageFromURL(URL).then(path => {
-        filteredImage = path;
-        console.log(" await filterImageFromURL then: " + filteredImage);
+      const path = await filterImageFromURL(URL);
+      res.status(200).sendFile(path, async () => {
+        await deleteLocalFiles([path]);
       });
-      res.status(200).sendFile(filteredImage, () => { console.log(" sendfile before delete: " + filteredImage); deleteLocalFiles([filteredImage]) });
     } catch (error) {
       res.send(error);
     }

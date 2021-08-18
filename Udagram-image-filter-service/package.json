@@ -9,6 +9,9 @@
         "build": "npm run clean && tsc && cp package.json www/package.json && mkdir www/tmp && cd www && zip -r Archive.zip . && cd ..",
         "dev": "ts-node-dev ./src/server.ts"
     },
+    "engines": {
+        "node": "14.17.3"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/grutt/udacity-c2-image-filter.git"
@@ -28,10 +31,9 @@
         "typescript": "^3.5.3"
     },
     "dependencies": {
-        "@types/node-fetch": "^2.5.10",
+        "axios": "^0.21.1",
         "express": "^4.17.1",
         "jimp": "^0.16.1",
-        "node-fetch": "^2.6.1",
         "rimraf": "^3.0.2"
     }
 }

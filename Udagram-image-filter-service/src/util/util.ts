@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import Jimp = require('jimp');
-import fetch from 'node-fetch';
+import Axios from 'axios';
 // filterImageFromURL
 // helper function to download, filter, and save the filtered image locally
 // returns the absolute path to the local image
@@ -12,32 +12,50 @@ import fetch from 'node-fetch';
 export async function filterImageFromURL(inputURL: string): Promise<string> {
     return new Promise(async (resolve, reject) => {
         try {
-            const outpath = '/tmp/filtered.' + Math.floor(Math.random() * 2000) + '.jpg';
-            const file = await download(inputURL, outpath);
+            const generatedImageName = 'filtered.' + Math.floor(Math.random() * 2000) + '.jpg';
+            const folder = 'tmp';
+            const file = await downloadFile(inputURL, __dirname + folder, generatedImageName);
             const photo = await Jimp.read(file);
             await photo
                 .resize(256, 256) // resize
                 .quality(60) // set JPEG quality
                 .greyscale() // set greyscale
-                .write(path.join(__dirname, outpath), (img) => {
-                    resolve(path.join(__dirname, outpath));
+                .write(path.join(__dirname, folder, generatedImageName), (img) => {
+                    resolve(path.join(__dirname, folder, generatedImageName));
                 });
 
         } catch (error) {
             console.log(error);
-            reject(error)
+            reject(error);
         }
     });
 }
 
 // Get image from url and save to local folder.
-async function download(url: string, outpath: string) {
-    const response = await fetch(url);
-    const buffer = await response.buffer();
-    fs.writeFile(path.join(__dirname, outpath), buffer, () =>
-        console.log('finished downloading!'));
-    return path.join(__dirname, outpath);
+// url is the image address, for example, http://wximg.233.com/attached/image/20160815/20160815162505_0878.png
+// filepath is the local directory for file downloads
+// name is the file name after downloading
+async function downloadFile(url: string, filepath: string, name: string): Promise<string> {
+    if (!fs.existsSync(filepath)) {
+        fs.mkdirSync(filepath);
+    }
+    const mypath = path.resolve(filepath, name);
+    const writer = fs.createWriteStream(mypath);
+    const response = await Axios({
+        url,
+        method: "GET",
+        responseType: "stream",
+    });
+    response.data.pipe(writer);
+    return new Promise((resolve, reject) => {
+        writer.on("finish", resolve);
+        writer.on("error", reject);
+    }).then((err) => {
+        if (err) console.log(err);
+        return mypath;
+    });
 }
+
 // deleteLocalFiles
 // helper function to delete files on the local disk
 // useful to cleanup after tasks
@@ -45,7 +63,6 @@ async function download(url: string, outpath: string) {
 //    files: Array<string> an array of absolute paths to files
 export async function deleteLocalFiles(files: Array<string>) {
     for (let file of files) {
-        console.log("for each " + file);
         fs.unlinkSync(file);
     }
 }
